@@ -36,7 +36,7 @@
     </template>
     <template name="xquery-module" mode="xquery">
         <description>XQuery Library Module</description>
-        <code>xquery version "3.0";
+        <code>xquery version "1.0-ml";
 
 module namespace mymodule="http://exist-db.org/apps/myapp/mymodule";
 
@@ -44,7 +44,7 @@ module namespace mymodule="http://exist-db.org/apps/myapp/mymodule";
     </template>
     <template name="controller" mode="xquery">
         <description>XQuery URL Rewriting Controller</description>
-        <code>xquery version "3.0";
+        <code>xquery version "1.0-ml";
             
 declare variable $exist:path external;
 declare variable $exist:resource external;

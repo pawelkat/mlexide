@@ -425,7 +425,7 @@ eXide.edit.Editor = (function () {
         if (data && typeof data == "string") {
             session = new EditSession(data);
         } else if (type && type === "xquery") {
-            session = new EditSession("xquery version \"3.0\";\n\n");
+            session = new EditSession("xquery version \"1.0-ml\";\n\n");
         } else {
             session = new EditSession("");
         }
@@ -461,7 +461,7 @@ eXide.edit.Editor = (function () {
         $.ajax({
     		url: "v1/resources/get-template",
 			type: "POST",
-			data: { template: template },
+			data: { "rs:template": template },
 			dataType: "text",
 			success: function (data) {
             	var newDocId = 0;
@@ -667,7 +667,7 @@ eXide.edit.Editor = (function () {
 		eXide.util.message("Storing resource " + $this.activeDoc.name + "...");
 		
 		$.ajax({
-			url: "v1/resources/store" + $this.activeDoc.path,
+			url: "v1/resources/store?rs:path=" + $this.activeDoc.path,
 			type: "PUT",
 			data: $this.activeDoc.getText(),
 			dataType: "json",

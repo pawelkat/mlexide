@@ -11,18 +11,40 @@ declare namespace roxy = "http://marklogic.com/roxy";
  : This means that the get function will take two parameters, a string and an int.
  :)
 
-(:
- :)
+declare %private function app:getResource($uri, $options){
+    xdmp:invoke-function(
+      function(){document($uri)},
+      $options
+    )
+};
+
+declare %private function app:getContentType($uri, $options){
+    xdmp:invoke-function(
+      function(){xdmp:uri-content-type($uri)},
+      $options
+    )
+};
+
 declare 
-%roxy:params("")
+%roxy:params("path=xs:string")
 function app:get(
   $context as map:map,
   $params  as map:map
 ) as document-node()*
-{
-  map:put($context, "output-types", "application/xml"),
-  xdmp:set-response-code(200, "OK"),
-  document { "GET called on the ext service extension" }
+{  
+  let $path := replace(map:get($params, "path"), "//", "/")
+  let $dbName := tokenize($path, "/")[3]
+  let $uri:=fn:substring-after($path, $dbName)
+  let $options:=
+      <options xmlns="xdmp:eval">
+        <database>{xdmp:database($dbName)}</database>
+      </options>
+  return
+  (
+    map:put($context, "output-types", app:getContentType($uri, $options)),
+    xdmp:set-response-code(200, "OK"),
+    document { app:getResource($uri, $options) }
+  )
 };
 
 (:

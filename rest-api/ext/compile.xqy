@@ -11,8 +11,44 @@ declare namespace roxy = "http://marklogic.com/roxy";
  : This means that the get function will take two parameters, a string and an int.
  :)
 
-(:
- :)
+(:declare %private function app:performCheck($query, $options){
+  let $staticCheck:=
+    try{
+      xdmp:eval(xs:string($query,(), $options))
+    }catch($exception){
+        $exception
+    }
+  return
+    if ($staticCheck="") then
+      (<json/>)
+    else
+      ($staticCheck)
+};:)
+
+declare %private function app:checkQuery($query, $options){
+    try{
+      let $check:=xdmp:eval($query,(), $options)
+      return
+        '{"result":"pass"}'
+    }catch($err){
+      let $frame1:=$err/error:stack/error:frame[1]
+      let $code:=$err/error:format-string/text()
+      let $line:=$frame1/error:line/text()
+      let $column:=$frame1/error:column/text()
+      let $text:=$err/error:data/error:datum/text()
+      return
+      '{
+      "result": "fail",
+      "error": {
+        "code": "'||$code||'",
+        "line": "'||$line||'",
+        "column": "'||$column||'",
+        "#text": "'||$code||'"
+        }
+      }'
+    }
+};
+
 declare 
 %roxy:params("")
 function app:get(
@@ -26,6 +62,15 @@ function app:get(
 };
 
 (:
+'{
+      "result": "fail",
+      "error": {
+        "code": "(http://www.w3.org/2005/xqt-errors/#XPST0003):It is a static error if an expression is not a valid instance of the grammar defined in A.1 EBNF.",
+        "line": "2",
+        "column": "9",
+        "#text": "Syntax error within user defined function notification:send-email: unexpected token: mail"
+      }
+    }' 
  :)
 declare 
 %roxy:params("")
@@ -35,9 +80,21 @@ function app:put(
     $input   as document-node()*
 ) as document-node()?
 {
-  map:put($context, "output-types", "application/xml"),
-  xdmp:set-response-code(200, "OK"),
-  document { "PUT called on the ext service extension" }
+  let $dbName:="Documents"
+  let $options:=
+      <options xmlns="xdmp:eval">
+        <database>{xdmp:database($dbName)}</database>
+        <static-check>true</static-check>
+      </options>
+  let $result:=app:checkQuery(xdmp:quote($input), $options)
+  return
+  (
+    map:put($context, "output-types", "application/json"),
+    xdmp:set-response-code(200, "OK"),
+    document { 
+      $result
+    }
+  )
 };
 
 (:

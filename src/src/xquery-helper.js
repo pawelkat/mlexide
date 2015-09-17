@@ -458,7 +458,7 @@ eXide.edit.XQueryModeHelper = (function () {
 			url: "v1/resources/docs",
 			dataType: "text",
 			type: "POST",
-			data: { prefix: prefix},
+			data: { "rs:prefix": prefix},
 			
 			success: function (data) {
 				data = $.parseJSON(data);

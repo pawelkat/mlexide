@@ -1,0 +1,36 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>500 Internal Server Error</title>
+    <meta name="robots" content="noindex,nofollow"/>
+    <link rel="stylesheet" href="/error.css"/>
+  </head>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  <body>
+    <span class="error">
+      <h1>500 Internal Server Error</h1>
+      <dl>
+        <dt>XDMP-ARGTYPE: (err:XPTY0004) fn:concat(
+  "declare function ",
+  $func/@lib,
+  ":",
+  $func/@name,
+  "(",
+  local:print-args($func, $i),
+  ") as ",
+  $func/apidoc:return,
+  " external ;&amp;#10;") -- arg7 is not of type xs:anyAtomicType?</dt>
+        <dd></dd>
+        <dt>in /onlineDoc/latest/all-function-sig.xqy, at 30:0,<br/>
+          in local:print-func(fn:doc("Docs/Security.cpp")/apidoc:module/apidoc:function[10]) [0.9-ml]</dt>
+        <dd>
+          $func = fn:doc("Docs/Security.cpp")/apidoc:module/apidoc:function[10]<br/>
+          $iterations = xs:unsignedLong("0")<br/>
+          $i = 0</dd>
+        <dt>in /onlineDoc/latest/all-function-sig.xqy, at 77:0 [0.9-ml]</dt>
+        <dd>
+          $builtins = (xs:anyURI("Docs/manage-requests.xsd"), xs:anyURI("Docs/manage-databases.xsd"), xs:anyURI("Docs/TraceBuiltins.cpp"), ...)<br/>
+          $functions = (fn:doc("Docs/TraceBuiltins.cpp")/apidoc:module/apidoc:function, fn:doc("Docs/ExsltBuiltins.cpp")/apidoc:module/apidoc:function[1], fn:doc("Docs/ExsltBuiltins.cpp")/apidoc:module/apidoc:function[2], ...)<br/>
+          $f = fn:doc("Docs/Security.cpp")/apidoc:module/apidoc:function[10]</dd>
+      </dl>
+    </span>
+  </body>
+</html>

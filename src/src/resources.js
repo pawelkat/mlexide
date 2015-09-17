@@ -284,7 +284,7 @@ eXide.browse.ResourceBrowser = (function () {
 		var $this = this;
 		this.loading = true;
         end += 20;
-		var params = { root: this.collection, view: "r", start: start, end: end };
+		var params = { "rs:root": this.collection, "rs:view": "r", "rs:start": start, "rs:end": end };
 		$.getJSON("v1/resources/collections", params, function (data) {
 		    $this.loading = false;
 			for (var i = start; i <= end; i++) {
@@ -336,8 +336,8 @@ eXide.browse.ResourceBrowser = (function () {
 			function () {
 			    $("#eXide-browse-spinner").show();
 				$.getJSON("v1/resources/collections", { 
-						create: $("#eXide-browse-collection-name").val(), 
-						collection: $this.collection
+						"rs:create": $("#eXide-browse-collection-name").val(), 
+						"rs:collection": $this.collection
 					},
 					function (data) {
 					    $("#eXide-browse-spinner").hide();
@@ -358,7 +358,7 @@ eXide.browse.ResourceBrowser = (function () {
 			function () {
 			    $("#eXide-browse-spinner").show();
 				$.getJSON("v1/resources/collections", { 
-    					remove: $this.collection
+    					"rs:remove": $this.collection
     				},
     				function (data) {
     				    $("#eXide-browse-spinner").hide();
@@ -386,8 +386,8 @@ eXide.browse.ResourceBrowser = (function () {
 				function () {
 				    $("#eXide-browse-spinner").show();
 					$.getJSON("v1/resources/collections", { 
-							remove: resources,
-							root: $this.collection
+							"rs:remove": resources,
+							"rs:root": $this.collection
 						},
 						function (data) {
 						    $("#eXide-browse-spinner").hide();

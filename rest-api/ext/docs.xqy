@@ -22,7 +22,7 @@ function app:get(
 {
   map:put($context, "output-types", "application/xml"),
   xdmp:set-response-code(200, "OK"),
-  document { "GET called on the ext service extension" }
+  document {  "GET called"  }
 };
 
 (:
@@ -43,16 +43,35 @@ function app:put(
 (:
  :)
 declare 
-%roxy:params("")
+%roxy:params("prefix=xs:string")
 function app:post(
     $context as map:map,
     $params  as map:map,
     $input   as document-node()*
 ) as document-node()*
 {
-  map:put($context, "output-types", "application/xml"),
-  xdmp:set-response-code(200, "OK"),
-  document { "POST called on the ext service extension" }
+  let $prefix := map:get($params, "prefix")
+  return
+  (
+    map:put($context, "output-types", "application/json"),
+    xdmp:set-response-code(200, "OK"),
+    document { '[
+      {
+        "signature": "datetime:format-date($date as xs:date, $simple-date-format as xs:string)",
+        "template": "substring($${1:source}, $${2:starting}, $${3:length})",
+        "help": "<div class=\"function-help\">\n    <p>Returns a xs:string of the xs:date formatted according to the SimpleDateFormat format.</p>\n    <dl>\n        <dt>$date as xs:date</dt>\n        <dd>The date to to be formatted.</dd>\n        <dt>$simple-date-format as xs:string</dt>\n        <dd>The format string according to the Java java.text.SimpleDateFormat class</dd>\n    </dl>\n    <dl>\n        <dt>Returns: xs:string</dt>\n        <dd>the formatted date string</dd>\n    </dl>\n</div>",
+        "type": "function",
+        "visibility": "public"
+      },
+      {
+        "signature": "datetime:format-dateTime($date-time as xs:dateTime, $simple-date-format as xs:string)",
+        "template": "substring($${1:source}, $${2:starting}, $${3:length})",
+        "help": "<div class=\"function-help\">\n    <p>Returns a xs:string of the xs:dateTime according to the SimpleDateFormat format.</p>\n    <dl>\n        <dt>$date-time as xs:dateTime</dt>\n        <dd>The dateTime to to be formatted.</dd>\n        <dt>$simple-date-format as xs:string</dt>\n        <dd>The format string according to the Java java.text.SimpleDateFormat class</dd>\n    </dl>\n    <dl>\n        <dt>Returns: xs:string</dt>\n        <dd>the formatted dateTime string</dd>\n    </dl>\n</div>",
+        "type": "function",
+        "visibility": "public"
+      }
+    ]' }
+  )
 };
 
 (:

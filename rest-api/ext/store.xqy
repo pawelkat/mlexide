@@ -10,7 +10,12 @@ declare namespace roxy = "http://marklogic.com/roxy";
  :   declare %roxy:params("uri=xs:string", "priority=xs:int") app:get(...)
  : This means that the get function will take two parameters, a string and an int.
  :)
-
+declare %private function app:storeResource($input, $uri, $options){
+    xdmp:invoke-function(
+      function(){xdmp:document-insert($uri, $input), xdmp:commit()},
+      $options
+    )
+};
 (:
  :)
 declare 
@@ -35,9 +40,30 @@ function app:put(
     $input   as document-node()*
 ) as document-node()?
 {
-  map:put($context, "output-types", "application/xml"),
-  xdmp:set-response-code(200, "OK"),
-  document { "PUT called on the ext service extension" }
+  let $path := replace(map:get($params, "path"), "//", "/")
+  let $dbName := tokenize($path, "/")[3]
+  let $uri:=fn:substring-after($path, $dbName)
+  let $options:=
+      <options xmlns="xdmp:eval">
+        <transaction-mode>update</transaction-mode>
+        <database>{xdmp:database($dbName)}</database>
+      </options>
+  return(
+    try{
+      let $response:=app:storeResource($input, $uri, $options)
+      return
+      (
+        map:put($context, "output-types", "application/json"),
+        xdmp:set-response-code(200, "OK"),
+        document { '{"response" : "Saved"}' }
+      )
+
+    }catch ($exception) {
+      map:put($context, "output-types", "application/json"),
+      xdmp:set-response-code(404, "ERROR"),
+      document {'{"response" : "Problem saving the item '|| $exception ||'}' }
+    }
+  )
 };
 
 (:

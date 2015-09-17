@@ -311,7 +311,7 @@ eXide.app = (function(util) {
                 return true;
             }
 			$.ajax({
-				url: "v1/resources/load?path=" + resource.path,
+				url: "v1/resources/load?rs:path=" + resource.path,
 				dataType: 'text',
 				success: function (data, status, xhr) {
                     if (reload) {
@@ -462,7 +462,7 @@ eXide.app = (function(util) {
 				util.error("There are unsaved changes in the document. Please save it first.");
 				return;
 			}
-			window.location.href = "v1/resources/load?download=true&path=" + encodeURIComponent(doc.getPath());
+			window.location.href = "v1/resources/load?rs:download=true&rs:path=" + encodeURIComponent(doc.getPath());
 		},
         
 		runQuery: function(path, livePreview) {
@@ -522,7 +522,7 @@ eXide.app = (function(util) {
         				type: "POST",
         				url: "v1/resources/execute",
         				dataType: serializationMode == "xml" ? serializationMode : "text",
-        				data: { "qu": code, "base": moduleLoadPath, "output": serializationMode },
+        				data: { "rs:qu": code, "rs:base": moduleLoadPath, "rs:output": serializationMode },
         				success: function (data, status, xhr) {
                             switch (serializationMode) {
                                 case "xml":
@@ -571,7 +571,7 @@ eXide.app = (function(util) {
 		retrieveNext: function() {
 			$.log("retrieveNext: %d", currentOffset);
 		    if (currentOffset > 0 && currentOffset <= endOffset) {
-		        var url = 'v1/resources/results/' + currentOffset;
+		        var url = 'v1/resources/results?rs:id=' + currentOffset;
 				currentOffset++;
 				$.ajax({
 					url: url,

@@ -1,6 +1,6 @@
 xquery version "1.0-ml";
 
-module namespace app = "http://marklogic.com/rest-api/resource/outline";
+module namespace app = "http://marklogic.com/rest-api/resource/validate-xml";
 
 declare namespace roxy = "http://marklogic.com/roxy";
 
@@ -41,47 +41,6 @@ function app:put(
 };
 
 (:
-'{
-  "modules": [
-    {
-      "source": "java:org.exist.console.xquery.ConsoleModule",
-      "prefix": "console",
-      "functions": [
-        {
-          "name": "console:log",
-          "signature": "console:log($items as item()*)",
-          "visibility": "public"
-        },
-        {
-          "name": "console:log",
-          "signature": "console:log($channel as xs:string, $items as item()*)",
-          "visibility": "public"
-        },
-        {
-          "name": "console:send",
-          "signature": "console:send($channel as xs:string, $items as item()?)",
-          "visibility": "public"
-        }
-      ]
-    },
-    {
-      "source": "java:org.exist.xquery.modules.mail.MailModule",
-      "prefix": "mail",
-      "functions": [
-        {
-          "name": "mail:get-mail-session",
-          "signature": "mail:get-mail-session($properties as element()?)",
-          "visibility": "public"
-        },
-        {
-          "name": "mail:get-mail-store",
-          "signature": "mail:get-mail-store($mail-handle as xs:integer)",
-          "visibility": "public"
-        }
-      ]
-    }
-  ]
-}' 
  :)
 declare 
 %roxy:params("")
@@ -91,13 +50,9 @@ function app:post(
     $input   as document-node()*
 ) as document-node()*
 {
-  map:put($context, "output-types", "application/json"),
+  map:put($context, "output-types", "application/xml"),
   xdmp:set-response-code(200, "OK"),
-  document { '{
-  "modules": [
-    
-  ]
-}' }
+  document { "POST called on the ext service extension" }
 };
 
 (:

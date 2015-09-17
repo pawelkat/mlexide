@@ -76,7 +76,7 @@ eXide.edit.Directory = (function () {
 			}
 			return fn(d)
 		}
-		d3.json("v1/resources/collections?root=" + (sel.datum().key || "/db") + "&view=r", function(error, data){
+		d3.json("v1/resources/collections?rs:root=" + (sel.datum().key || "/db") + "&rs:view=r", function(error, data){
 			if(error)	{
 				return
 			}

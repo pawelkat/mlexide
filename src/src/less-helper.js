@@ -55,7 +55,7 @@ eXide.edit.LessModeHelper = (function () {
         var cssPath = doc.getPath().replace(/\.less$/, ".css");
         eXide.util.message("Compiling less file to " + cssPath);
 		$.ajax({
-            url: "v1/resources/store/" + cssPath,
+            url: "v1/resources/store?rs:path=" + cssPath,
 			type: "PUT",
 			data: css,
 			dataType: "json",

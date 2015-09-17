@@ -10,7 +10,16 @@ declare namespace roxy = "http://marklogic.com/roxy";
  :   declare %roxy:params("uri=xs:string", "priority=xs:int") app:get(...)
  : This means that the get function will take two parameters, a string and an int.
  :)
-
+declare %private function app:executeQuery($query, $options){
+    try{
+      let $resp:=xdmp:eval($query,(), $options)
+      let $sessionQu:=xdmp:set-session-field("queryResults", $resp)
+      return
+        <result hits="{count($resp)}" elapsed="0.028"/>
+    }catch($err){
+      $err
+    }
+};
 (:
  :)
 declare 
@@ -50,9 +59,21 @@ function app:post(
     $input   as document-node()*
 ) as document-node()*
 {
-  map:put($context, "output-types", "application/xml"),
-  xdmp:set-response-code(200, "OK"),
-  document { "POST called on the ext service extension" }
+  let $qu:=map:get($params, "qu")
+  let $dbName:="Documents"
+  let $options:=
+      <options xmlns="xdmp:eval">
+        <database>{xdmp:database($dbName)}</database>
+      </options>
+  let $result:=app:executeQuery($qu, $options)
+  return
+  (
+    map:put($context, "output-types", "application/xml"),
+    xdmp:set-response-code(200, "OK"),
+    document { 
+      $result
+    }
+  )
 };
 
 (:
