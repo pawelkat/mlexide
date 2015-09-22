@@ -35,7 +35,7 @@ eXide.edit.Projects = (function(oop) {
     
     Constr.prototype.getProject = function (collection, callback) {
         var $this = this;
-        $.getJSON("v1/resources/dbinfo", { "rs:info": collection }, function (data) {
+        $.getJSON("v1/resources/dbinfo", { info: collection }, function (data) {
             if (!data) {
                 if (typeof callback == "function") {
                     callback(null);

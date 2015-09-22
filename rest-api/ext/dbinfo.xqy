@@ -22,7 +22,7 @@ function app:get(
 {
   map:put($context, "output-types", "application/xml"),
   xdmp:set-response-code(200, "OK"),
-  document { "GET called on the ext service extension" }
+  document { "null" }
 };
 
 (:

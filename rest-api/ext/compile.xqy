@@ -32,9 +32,9 @@ declare %private function app:checkQuery($query, $options){
         '{"result":"pass"}'
     }catch($err){
       let $frame1:=$err/error:stack/error:frame[1]
-      let $code:=$err/error:format-string/text()
-      let $line:=$frame1/error:line/text()
-      let $column:=$frame1/error:column/text()
+      let $code:=replace($err/error:format-string/text(), '"', "'")
+      let $line:=if ($frame1/error:line) then ($frame1/error:line/text()) else ("1")
+      let $column:=if ($frame1/error:column) then ($frame1/error:column/text()) else ("1")
       let $text:=$err/error:data/error:datum/text()
       return
       '{

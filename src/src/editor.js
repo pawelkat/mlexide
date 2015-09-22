@@ -461,7 +461,7 @@ eXide.edit.Editor = (function () {
         $.ajax({
     		url: "v1/resources/get-template",
 			type: "POST",
-			data: { "rs:template": template },
+			data: { template: template },
 			dataType: "text",
 			success: function (data) {
             	var newDocId = 0;

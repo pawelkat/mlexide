@@ -522,7 +522,7 @@ eXide.app = (function(util) {
         				type: "POST",
         				url: "v1/resources/execute",
         				dataType: serializationMode == "xml" ? serializationMode : "text",
-        				data: { "rs:qu": code, "rs:base": moduleLoadPath, "rs:output": serializationMode },
+        				data: { "qu": code, "base": moduleLoadPath, "output": serializationMode },
         				success: function (data, status, xhr) {
                             switch (serializationMode) {
                                 case "xml":
@@ -571,7 +571,7 @@ eXide.app = (function(util) {
 		retrieveNext: function() {
 			$.log("retrieveNext: %d", currentOffset);
 		    if (currentOffset > 0 && currentOffset <= endOffset) {
-		        var url = 'v1/resources/results?rs:id=' + currentOffset;
+		        var url = 'v1/resources/results/' + currentOffset;
 				currentOffset++;
 				$.ajax({
 					url: url,

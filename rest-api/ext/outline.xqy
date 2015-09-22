@@ -93,11 +93,8 @@ function app:post(
 {
   map:put($context, "output-types", "application/json"),
   xdmp:set-response-code(200, "OK"),
-  document { '{
-  "modules": [
-    
-  ]
-}' }
+  document { 
+  'null' }
 };
 
 (:
