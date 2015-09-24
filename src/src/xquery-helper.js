@@ -112,15 +112,15 @@ eXide.edit.XQueryModeHelper = (function () {
     };
     
 	Constr.prototype.closeTag = function (doc, text, row) {
-		var basePath = "xmldb:exist://" + doc.getBasePath();
+		var currentDB = "/db/" + $("#currentDB").val();
 		var $this = this;
 		$.ajax({
 			type: "PUT",
 			url: "v1/resources/compile",
 			data: text,
-			contentType: "application/octet-stream",
+			contentType: "application/octet-stream?rs:base=" + currentDB,
 			headers: {
-			    "X-BasePath": basePath
+			    "rs:base": currentDB
 			},
 			dataType: "json",
 			success: function (data) {
@@ -144,7 +144,7 @@ eXide.edit.XQueryModeHelper = (function () {
 		
 	Constr.prototype.validate = function(doc, code, onComplete) {
 		var $this = this;
-		var basePath = "xmldb:exist://" + doc.getBasePath();
+		var currentDB = "/db/" + $("#currentDB").val();
 		
         this.xqlint(doc);
         for (var i = 0; i < this.validationListeners.length; i++) {
@@ -155,11 +155,11 @@ eXide.edit.XQueryModeHelper = (function () {
         
 		$.ajax({
 			type: "PUT",
-			url: "v1/resources/compile",
+			url: "v1/resources/compile?rs:base=" + currentDB,
 			data: code,
 			dataType: "json",
 			headers: {
-			    "X-BasePath": basePath
+			    "rs:base": currentDB
 			},
 			contentType: "application/octet-stream",
 			success: function (data) {
@@ -458,7 +458,7 @@ eXide.edit.XQueryModeHelper = (function () {
 			url: "v1/resources/docs",
 			dataType: "text",
 			type: "POST",
-			data: { prefix: prefix},
+			data: { "rs:prefix": prefix},
 			
 			success: function (data) {
 				data = $.parseJSON(data);

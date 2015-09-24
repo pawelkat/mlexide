@@ -22,12 +22,27 @@ declare %private function app:builtin-modules($prefix as xs:string) {
 declare %private function app:generate-help($desc as element(xqdoc:function)) {
     let $help :=
         <div class="function-help">
+            <p><b>{data($desc/xqdoc:short)}</b></p>
             <p>{data($desc/xqdoc:comment/xqdoc:description)}</p>
             <dl>
-
+              {
+              for $param in $desc/xqdoc:comment/xqdoc:param
+              return
+              (
+                <dt>{data($param/@name)}</dt>,
+                <dd>{$param/text()}</dd>
+              )
+              }
             </dl>
             <dl>
-
+              {
+              for $exmpl in $desc/xqdoc:comment/xqdoc:example
+              return
+              (
+                <dt>Example:</dt>,
+                <dd><pre>{$exmpl/text()}</pre></dd>
+              )
+              }
             </dl>
         </div>
     return

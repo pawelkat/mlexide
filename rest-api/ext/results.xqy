@@ -13,7 +13,7 @@ import module namespace pretty = "http://exist-db.org/eXide/pretty"
  : This means that the get function will take two parameters, a string and an int.
  :)
 (:~ Retrieve a single query result. :)
-declare %private function app:retrieve($num as xs:int, $cached) as element() {
+declare %private function app:retrieve($num as xs:int, $cached, $dbName) as element() {
     let $node := $cached[$num]
     let $item := 
       if ($node instance of node()) then
@@ -29,7 +29,7 @@ declare %private function app:retrieve($num as xs:int, $cached) as element() {
                     <div class="pos">
                     {
                         if (string-length($documentURI) > 0) then
-                            <a href="{$documentURI}" data-path="{$documentURI}"
+                            <a href="/db/{$dbName||$documentURI}" data-path="/db/{$dbName||$documentURI}"
                                 title="Click to load source document">{$num}</a>
                         else
                             ()
@@ -53,11 +53,13 @@ function app:get(
 ) as document-node()*
 {
   let $id:=xs:int(map:get($params, "id"))
+  let $path := replace(map:get($params, "base"), "//", "/")
+  let $dbName := tokenize($path, "/")[3]
   let $cached:=xdmp:get-session-field("queryResults")
   return(
     map:put($context, "output-types", "application/xml"),
     xdmp:set-response-code(200, "OK"),
-    document { app:retrieve($id, $cached) }
+    document { app:retrieve($id, $cached, $dbName) }
   )
 };
 

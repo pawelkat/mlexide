@@ -80,7 +80,9 @@ function app:put(
     $input   as document-node()*
 ) as document-node()?
 {
-  let $dbName:="Documents"
+  let $path := replace(map:get($params, "base"), "//", "/")
+  let $dbName := tokenize($path, "/")[3]
+  (:let $dbName:="Documents":)
   let $options:=
       <options xmlns="xdmp:eval">
         <database>{xdmp:database($dbName)}</database>

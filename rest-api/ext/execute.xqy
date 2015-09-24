@@ -60,7 +60,8 @@ function app:post(
 ) as document-node()*
 {
   let $qu:=map:get($params, "qu")
-  let $dbName:="Documents"
+  let $path := replace(map:get($params, "base"), "//", "/")
+  let $dbName := tokenize($path, "/")[3]
   let $options:=
       <options xmlns="xdmp:eval">
         <database>{xdmp:database($dbName)}</database>

@@ -59,22 +59,22 @@ eXide.namespace("eXide.app");
  */
 eXide.app = (function(util) {
     
-	var editor;
+    var editor;
 
     var layout;
-	var deploymentEditor;
-	var dbBrowser;
+    var deploymentEditor;
+    var dbBrowser;
     var projects;
-	var preferences;
+    var preferences;
     var templates = {};
     var menu;
     var lastQuery = null;
-	var hitCount = 0;
-	var startOffset = 0;
-	var currentOffset = 0;
-	var endOffset = 0;
-	
-	var login = null;
+    var hitCount = 0;
+    var startOffset = 0;
+    var currentOffset = 0;
+    var endOffset = 0;
+    
+    var login = null;
     
     var allowDnd = true;
     
@@ -90,37 +90,37 @@ eXide.app = (function(util) {
         "less": 1
     };
     
-	var app = {
+    var app = {
         
-		init: function(afterInitCallback) {
-		    if (!Modernizr.flexbox) {
-		        $("#startup-error").show();
-		        return;
+        init: function(afterInitCallback) {
+            if (!Modernizr.flexbox) {
+                $("#startup-error").show();
+                return;
             }
             
             projects = new eXide.edit.Projects();
             menu = new util.Menubar($(".menu"));
-			editor = new eXide.edit.Editor(document.getElementById("editor"), menu);
-			deploymentEditor = new eXide.edit.PackageEditor(projects);
-			
-			dbBrowser = new eXide.browse.Browser(document.getElementById("open-dialog"));
-			dbBrowser.addEventListener("upload-open", function(isOpen) {
-			    allowDnd = !isOpen;
-			});
-			
+            editor = new eXide.edit.Editor(document.getElementById("editor"), menu);
+            deploymentEditor = new eXide.edit.PackageEditor(projects);
+            
+            dbBrowser = new eXide.browse.Browser(document.getElementById("open-dialog"));
+            dbBrowser.addEventListener("upload-open", function(isOpen) {
+                allowDnd = !isOpen;
+            });
+            
             deploymentEditor.addEventListener("change", null, function(collection) {
                 dbBrowser.changeToCollection(collection);
                 app.openDocument();
             });
-			preferences = new util.Preferences(editor);
-			
+            preferences = new util.Preferences(editor);
+            
             editor.addEventListener("setTheme", app.setTheme);
             
             app.initGUI(menu);
-			
-			var dnd = new eXide.util.DnD("body");
-			dnd.addEventListener("drop", app.dropFile);
-			
+            
+            var dnd = new eXide.util.DnD("body");
+            dnd.addEventListener("drop", app.dropFile);
+            
             // save restored paths for later
             app.getLogin(function() {
                 app.initStatus("Restoring state");
@@ -141,8 +141,8 @@ eXide.app = (function(util) {
                     }
                 });
             });
-		    
-		    editor.addEventListener("outlineChange", app.onOutlineChange);
+            
+            editor.addEventListener("outlineChange", app.onOutlineChange);
             editor.validator.addEventListener("documentValid", function(doc) {
                 if (doc.isXQuery() && $("#live-preview").is(":checked")) {
                     app.runQuery(doc.getPath(), true);
@@ -154,11 +154,11 @@ eXide.app = (function(util) {
                 }
             });
             
-			$(window).resize(app.resize);
-			
-			$(window).unload(function () {
-				app.saveState();
-			});
+            $(window).resize(app.resize);
+            
+            $(window).unload(function () {
+                app.saveState();
+            });
             
             eXide.find.Modules.addEventListener("open", null, function (module) {
                 app.findDocument(module.at);
@@ -166,7 +166,7 @@ eXide.app = (function(util) {
             eXide.find.Modules.addEventListener("import", null, function (module) {
                 editor.exec("importModule", module.prefix, module.uri, module.at);
             });
-		},
+        },
 
         version: function() {
             return $("#eXide-version").text();
@@ -184,8 +184,8 @@ eXide.app = (function(util) {
             return menu;
         },
         
-		resize: function(resizeIframe) {
-			var panel = $("#editor");
+        resize: function(resizeIframe) {
+            var panel = $("#editor");
             if (resizeIframe) {
                 var resultsContainer = $(".panel-" + resultPanel);
                 var resultsBody = $("#results-body");
@@ -193,11 +193,11 @@ eXide.app = (function(util) {
                 $("#results-iframe").height(resultsContainer.innerHeight() - $(".navbar", resultsContainer).height() - 8);
                 $("#results-body").height(resultsContainer.innerHeight() - $(".navbar", resultsContainer).height() - 8);
             }
-//			panel.width($(".ui-layout-center").innerWidth() - 20);
-//			panel.css("width", "100%");
-//			panel.height($(".ui-layout-center").innerHeight() - header.height());
-			editor.resize();
-		},
+//          panel.width($(".ui-layout-center").innerWidth() - 20);
+//          panel.css("width", "100%");
+//          panel.height($(".ui-layout-center").innerHeight() - header.height());
+            editor.resize();
+        },
         
         beforeResize: function() {
             if ($("#serialization-mode").val() == "html") {
@@ -212,9 +212,9 @@ eXide.app = (function(util) {
             }
         },
         
-		newDocument: function(data, type) {
-			editor.newDocument(data, type);
-		},
+        newDocument: function(data, type) {
+            editor.newDocument(data, type);
+        },
 
         newDocumentFromTemplate: function() {
             $("#dialog-templates").dialog("open");
@@ -239,69 +239,69 @@ eXide.app = (function(util) {
             }
         },
         
-		findDocument: function(path, line) {
-			var doc = editor.getDocument(path);
-			if (doc == null) {
-				var resource = {
-						name: path.match(/[^\/]+$/)[0],
-						path: path
-				};
-				app.$doOpenDocument(resource, function() {
-				    if (line) {
-        			    editor.editor.gotoLine(line);
-        			}
-				});
-			} else {
-				editor.switchTo(doc);
-				if (line) {
-    			    editor.editor.gotoLine(line);
-    			}
-			}
-		},
-		
-		locate: function(type, path, symbol) {
-			if (path == null) {
-				editor.exec("locate", type, symbol);
-			} else {
-				var doc = editor.getDocument(path);
-				if (doc == null) {
-					var resource = {
-							name: path.match(/[^\/]+$/)[0],
-							path: path
-					};
-					app.$doOpenDocument(resource, function(doc) {
+        findDocument: function(path, line) {
+            var doc = editor.getDocument(path);
+            if (doc == null) {
+                var resource = {
+                        name: path.match(/[^\/]+$/)[0],
+                        path: path
+                };
+                app.$doOpenDocument(resource, function() {
+                    if (line) {
+                        editor.editor.gotoLine(line);
+                    }
+                });
+            } else {
+                editor.switchTo(doc);
+                if (line) {
+                    editor.editor.gotoLine(line);
+                }
+            }
+        },
+        
+        locate: function(type, path, symbol) {
+            if (path == null) {
+                editor.exec("locate", type, symbol);
+            } else {
+                var doc = editor.getDocument(path);
+                if (doc == null) {
+                    var resource = {
+                            name: path.match(/[^\/]+$/)[0],
+                            path: path
+                    };
+                    app.$doOpenDocument(resource, function(doc) {
                         if (doc) {
                             editor.exec("locate", type, symbol);
                         }
-					});
-				} else {
-					editor.switchTo(doc);
-					editor.exec("locate", type, symbol);
-				}
-			}
-		},
-		
-		openDocument: function() {
-			dbBrowser.reload(["reload"], "open");
-			$("#open-dialog").dialog("option", "title", "Open Document");
-			$("#open-dialog").dialog("option", "buttons", { 
-				"cancel": function() { $(this).dialog("close"); editor.focus(); },
-				"open": app.openSelectedDocument
-			});
-			$("#open-dialog").dialog("open");
-		},
+                    });
+                } else {
+                    editor.switchTo(doc);
+                    editor.exec("locate", type, symbol);
+                }
+            }
+        },
+        
+        openDocument: function() {
+            dbBrowser.reload(["reload"], "open");
+            $("#open-dialog").dialog("option", "title", "Open Document");
+            $("#open-dialog").dialog("option", "buttons", { 
+                "cancel": function() { $(this).dialog("close"); editor.focus(); },
+                "open": app.openSelectedDocument
+            });
+            $("#open-dialog").dialog("open");
+        },
 
-		openSelectedDocument: function(close) {
-			var resource = dbBrowser.getSelection();
-			if (resource) {
-				app.$doOpenDocument(resource);
-			}
-			if (close == undefined || close)
-				$("#open-dialog").dialog("close");
-		},
+        openSelectedDocument: function(close) {
+            var resource = dbBrowser.getSelection();
+            if (resource) {
+                app.$doOpenDocument(resource);
+            }
+            if (close == undefined || close)
+                $("#open-dialog").dialog("close");
+        },
 
-		$doOpenDocument: function(resource, callback, reload) {
-			resource.path = util.normalizePath(resource.path);
+        $doOpenDocument: function(resource, callback, reload) {
+            resource.path = util.normalizePath(resource.path);
             var doc = editor.getDocument(resource.path);
             if (doc && !reload) {
                 editor.switchTo(doc);
@@ -310,10 +310,10 @@ eXide.app = (function(util) {
                 }
                 return true;
             }
-			$.ajax({
-				url: "v1/resources/load?rs:path=" + resource.path,
-				dataType: 'text',
-				success: function (data, status, xhr) {
+            $.ajax({
+                url: "v1/resources/load?rs:path=" + resource.path,
+                dataType: 'text',
+                success: function (data, status, xhr) {
                     if (reload) {
                         editor.reload(data);
                     } else {
@@ -321,21 +321,21 @@ eXide.app = (function(util) {
                         var externalPath = xhr.getResponseHeader("X-Link");
                         editor.openDocument(data, mime, resource, externalPath);
                     }
-					if (callback) {
-						callback(resource);
-					}
+                    if (callback) {
+                        callback(resource);
+                    }
                     return true;
-				},
-				error: function (xhr, status) {
-					util.error("Failed to load document " + resource.path + ": " + 
-							xhr.status + " " + xhr.statusText);
+                },
+                error: function (xhr, status) {
+                    util.error("Failed to load document " + resource.path + ": " + 
+                            xhr.status + " " + xhr.statusText);
                     if (callback) {
                         callback(null);
                     }
                     return false;
-				}
-			});
-		},
+                }
+            });
+        },
 
         reloadDocument: function() {
             var doc = editor.getActiveDocument();
@@ -356,32 +356,32 @@ eXide.app = (function(util) {
             app.$doOpenDocument(resource, null, true);
         },
         
-		closeDocument: function() {
-			if (!editor.getActiveDocument().isSaved()) {
-				$("#dialog-confirm-close").dialog({
+        closeDocument: function() {
+            if (!editor.getActiveDocument().isSaved()) {
+                $("#dialog-confirm-close").dialog({
                     appendTo: "#layout-container",
-					resizable: false,
-					height:140,
-					modal: true,
-					buttons: {
-						"Close": function() {
-							$( this ).dialog( "close" );
-							editor.closeDocument();
-						},
-						Cancel: function() {
-							$( this ).dialog( "close" );
-						}
-					},
+                    resizable: false,
+                    height:140,
+                    modal: true,
+                    buttons: {
+                        "Close": function() {
+                            $( this ).dialog( "close" );
+                            editor.closeDocument();
+                        },
+                        Cancel: function() {
+                            $( this ).dialog( "close" );
+                        }
+                    },
                     open: function() { 
                         $(this).closest('.ui-dialog').find('.ui-dialog-buttonpane button:eq(0)').focus(); 
                         $(this).closest('.ui-dialog').find('.ui-dialog-buttonpane button:eq(1)').blur(); 
                     }
-				});
+                });
                 
-			} else {
-				editor.closeDocument();
-			}
-		},
+            } else {
+                editor.closeDocument();
+            }
+        },
 
         closeAll: function() {
             editor.forEachDocument(function(doc) {
@@ -393,62 +393,62 @@ eXide.app = (function(util) {
             });
         },
         
-		saveDocument: function() {
+        saveDocument: function() {
             app.requireLogin(function () {
                 if (editor.getActiveDocument().getPath().match('^__new__')) {
-        			dbBrowser.reload(["reload", "create"], "save");
-    				$("#open-dialog").dialog("option", "title", "Save Document");
-    				$("#open-dialog").dialog("option", "buttons", { 
-    					"Cancel": function() {
+                    dbBrowser.reload(["reload", "create"], "save");
+                    $("#open-dialog").dialog("option", "title", "Save Document");
+                    $("#open-dialog").dialog("option", "buttons", { 
+                        "Cancel": function() {
                             $(this).dialog("close");
-        				},
-    					"Save": function() {
-    						editor.saveDocument(dbBrowser.getSelection(), function () {
-    							$("#open-dialog").dialog("close");
+                        },
+                        "Save": function() {
+                            editor.saveDocument(dbBrowser.getSelection(), function () {
+                                $("#open-dialog").dialog("close");
                                 deploymentEditor.autoSync(editor.getActiveDocument().getBasePath());
                                 app.updateStatus(this);
-								app.syncDirectory(this.getBasePath())
+                                app.syncDirectory(this.getBasePath())
                                 app.liveReload();
-    						}, function (msg) {
-    							util.Dialog.warning("Failed to Save Document", msg);
-    						});
-    					}
-    				});
-    				$("#open-dialog").dialog("open");
-    			} else {
-    				editor.saveDocument(null, function () {
-    					util.message(editor.getActiveDocument().getName() + " stored.");
+                            }, function (msg) {
+                                util.Dialog.warning("Failed to Save Document", msg);
+                            });
+                        }
+                    });
+                    $("#open-dialog").dialog("open");
+                } else {
+                    editor.saveDocument(null, function () {
+                        util.message(editor.getActiveDocument().getName() + " stored.");
                         deploymentEditor.autoSync(editor.getActiveDocument().getBasePath());
                         app.liveReload();
-    				}, function (msg) {
-    					util.Dialog.warning("Failed to Save Document", msg);
-    				});
-    			}
+                    }, function (msg) {
+                        util.Dialog.warning("Failed to Save Document", msg);
+                    });
+                }
             });
-		},
+        },
 
         saveDocumentAs: function() {
             app.requireLogin(function () {
                 dbBrowser.reload(["reload", "create"], "save");
-    			$("#open-dialog").dialog("option", "title", "Save Document As ...");
-    			$("#open-dialog").dialog("option", "buttons", { 
-    				"Cancel": function() {
+                $("#open-dialog").dialog("option", "title", "Save Document As ...");
+                $("#open-dialog").dialog("option", "buttons", { 
+                    "Cancel": function() {
                         // restore old path
                         $(this).dialog("close");
-    				},
-    				"Save": function() {
-    					editor.saveDocument(dbBrowser.getSelection(), function () {
-    						$("#open-dialog").dialog("close");
+                    },
+                    "Save": function() {
+                        editor.saveDocument(dbBrowser.getSelection(), function () {
+                            $("#open-dialog").dialog("close");
                             deploymentEditor.autoSync(editor.getActiveDocument().getBasePath());
                             app.updateStatus(this);
-							app.syncDirectory(this.getBasePath())
+                            app.syncDirectory(this.getBasePath())
                             app.liveReload();
-    					}, function (msg) {
-    						util.Dialog.warning("Failed to Save Document", msg);
-    					});
-    				}
-    			});
-    			$("#open-dialog").dialog("open");
+                        }, function (msg) {
+                            util.Dialog.warning("Failed to Save Document", msg);
+                        });
+                    }
+                });
+                $("#open-dialog").dialog("open");
             });
         },
         
@@ -456,23 +456,23 @@ eXide.app = (function(util) {
             editor.exec(arguments);
         },
         
-		download: function() {
-			var doc = editor.getActiveDocument();
-			if (doc.getPath().match("^__new__") || !doc.isSaved()) {
-				util.error("There are unsaved changes in the document. Please save it first.");
-				return;
-			}
-			window.location.href = "v1/resources/load?rs:download=true&rs:path=" + encodeURIComponent(doc.getPath());
-		},
+        download: function() {
+            var doc = editor.getActiveDocument();
+            if (doc.getPath().match("^__new__") || !doc.isSaved()) {
+                util.error("There are unsaved changes in the document. Please save it first.");
+                return;
+            }
+            window.location.href = "v1/resources/load?rs:download=true&rs:path=" + encodeURIComponent(doc.getPath());
+        },
         
-		runQuery: function(path, livePreview) {
+        runQuery: function(path, livePreview) {
             function showResultsPanel() {
                 editor.updateStatus("");
-				editor.clearErrors();
-				app.showResultsPanel();
-				
-				startOffset = 1;
-				currentOffset = 1;
+                editor.clearErrors();
+                app.showResultsPanel();
+                
+                startOffset = 1;
+                currentOffset = 1;
             }
 
             if (!(eXide.configuration.allowExecution || app.login.isAdmin)) {
@@ -512,35 +512,37 @@ eXide.app = (function(util) {
                     } else {
                         lastQuery = editor.getActiveDocument().getPath();
                     }
-        			editor.updateStatus("Running query ...");
+                    editor.updateStatus("Running query ...");
         
                     $("#serialization-mode").removeAttr("disabled");
                     var serializationMode = $("#serialization-mode").val();
-        			var moduleLoadPath = "xmldb:exist://" + editor.getActiveDocument().getBasePath();
-        			$('.results-container .results').empty();
-        			$.ajax({
-        				type: "POST",
-        				url: "v1/resources/execute",
-        				dataType: serializationMode == "xml" ? serializationMode : "text",
-        				data: { "qu": code, "base": moduleLoadPath, "output": serializationMode },
-        				success: function (data, status, xhr) {
+                    //PAKA: 
+                    //var moduleLoadPath = editor.getActiveDocument().getBasePath();
+                    var currentDB = "/db/" + $("#currentDB").val();
+                    $('.results-container .results').empty();
+                    $.ajax({
+                        type: "POST",
+                        url: "v1/resources/execute",
+                        dataType: serializationMode == "xml" ? serializationMode : "text",
+                        data: { "rs:qu": code, "rs:base": currentDB, "rs:output": serializationMode },
+                        success: function (data, status, xhr) {
                             switch (serializationMode) {
                                 case "xml":
                                     $("#results-iframe").hide();
-                					var elem = data.documentElement;
-                					if (elem.nodeName == 'error') {
-                				        var msg = $(elem).text();
-                				        //util.error(msg, "Compilation Error");
-                				        editor.evalError(msg, !livePreview);
-                					} else {
-                						showResultsPanel();
-                						hitCount = elem.getAttribute("hits");
-                						endOffset = startOffset + 10 - 1;
-                						if (hitCount < endOffset)
-                							endOffset = hitCount;
-                						util.message("Query returned " + hitCount + " item(s) in " + elem.getAttribute("elapsed") + "s");
-                						app.retrieveNext();
-                					}
+                                    var elem = data.documentElement;
+                                    if (elem.nodeName == 'error') {
+                                        var msg = $(elem).text();
+                                        //util.error(msg, "Compilation Error");
+                                        editor.evalError(msg, !livePreview);
+                                    } else {
+                                        showResultsPanel();
+                                        hitCount = elem.getAttribute("hits");
+                                        endOffset = startOffset + 10 - 1;
+                                        if (hitCount < endOffset)
+                                            endOffset = hitCount;
+                                        util.message("Query returned " + hitCount + " item(s) in " + elem.getAttribute("elapsed") + "s");
+                                        app.retrieveNext();
+                                    }
                                     break;
                                 default:
                                     showResultsPanel();
@@ -551,188 +553,189 @@ eXide.app = (function(util) {
                                     iframe.contentWindow.document.close();
                                     break;
                             }
-        				},
-        				error: function (xhr, status) {
-        					util.error(xhr.responseText, "Server Error");
-        				}
-        			});
+                        },
+                        error: function (xhr, status) {
+                            util.error(xhr.responseText, "Server Error");
+                        }
+                    });
                     break;
             }
                 
-		},
+        },
 
-		checkQuery: function() {
-			editor.validator.triggerNow(editor.getActiveDocument());
-		},
+        checkQuery: function() {
+            editor.validator.triggerNow(editor.getActiveDocument());
+        },
 
-		/** If there are more query results to load, retrieve
-		 *  the next result.
-		 */
-		retrieveNext: function() {
-			$.log("retrieveNext: %d", currentOffset);
-		    if (currentOffset > 0 && currentOffset <= endOffset) {
-		        var url = 'v1/resources/results/' + currentOffset;
-				currentOffset++;
-				$.ajax({
-					url: url,
-					dataType: 'html',
-					success: function (data) {
-						$('.results-container .results').append(data);
-						$(".results-container .current").text("Showing results " + startOffset + " to " + (currentOffset - 1) +
-								" of " + hitCount);
-						$(".results-container .pos:last a").click(function () {
-							app.findDocument($(this).data("path"));
-							return false;
-						});
-						app.retrieveNext();
-					}
-				});
-			} else {
-		    }
-		},
+        /** If there are more query results to load, retrieve
+         *  the next result.
+         */
+        retrieveNext: function() {
+            $.log("retrieveNext: %d", currentOffset);
+            var currentDB = "/db/" + $("#currentDB").val();
+            if (currentOffset > 0 && currentOffset <= endOffset) {
+                var url = 'v1/resources/results?rs:id=' + currentOffset + "&rs:base=" + currentDB;
+                currentOffset++;
+                $.ajax({
+                    url: url,
+                    dataType: 'html',
+                    success: function (data) {
+                        $('.results-container .results').append(data);
+                        $(".results-container .current").text("Showing results " + startOffset + " to " + (currentOffset - 1) +
+                                " of " + hitCount);
+                        $(".results-container .pos:last a").click(function () {
+                            app.findDocument($(this).data("path"));
+                            return false;
+                        });
+                        app.retrieveNext();
+                    }
+                });
+            } else {
+            }
+        },
 
-		/** Called if user clicks on "forward" link in query results. */
-		browseNext: function() {
-			if (currentOffset > 0 && endOffset < hitCount) {
-				startOffset = currentOffset;
-		        var howmany = 10;
-		        endOffset = currentOffset + howmany - 1;
-				if (hitCount < endOffset)
-					endOffset = hitCount;
-				$(".results-container .results").empty();
-				app.retrieveNext();
-			}
-			return false;
-		},
-		
-		/** Called if user clicks on "previous" link in query results. */
-		browsePrevious: function() {
-			if (currentOffset > 0 && startOffset > 1) {
-		        var count = 10;
-		        startOffset = startOffset - count;
-				if (startOffset < 1)
-					startOffset = 1;
-				currentOffset = startOffset;
-				endOffset = currentOffset + (count - 1);
-				if (hitCount < endOffset)
-					endOffset = hitCount;
-				$(".results-container .results").empty();
-				app.retrieveNext();
-			}
-			return false;
-		},
-		
-		syncDirectory : function(collection) {
-			editor.directory.reload(collection)
-		},
-		
-		syncManager : function(collection) {
-			if($("#open-dialog").is(":visible")){
-				dbBrowser.resources.collection = collection
-				dbBrowser.resources.reload()
-			}
-		},
-		
-		manage: function() {
-			app.requireLogin(function() {
+        /** Called if user clicks on "forward" link in query results. */
+        browseNext: function() {
+            if (currentOffset > 0 && endOffset < hitCount) {
+                startOffset = currentOffset;
+                var howmany = 10;
+                endOffset = currentOffset + howmany - 1;
+                if (hitCount < endOffset)
+                    endOffset = hitCount;
+                $(".results-container .results").empty();
+                app.retrieveNext();
+            }
+            return false;
+        },
+        
+        /** Called if user clicks on "previous" link in query results. */
+        browsePrevious: function() {
+            if (currentOffset > 0 && startOffset > 1) {
+                var count = 10;
+                startOffset = startOffset - count;
+                if (startOffset < 1)
+                    startOffset = 1;
+                currentOffset = startOffset;
+                endOffset = currentOffset + (count - 1);
+                if (hitCount < endOffset)
+                    endOffset = hitCount;
+                $(".results-container .results").empty();
+                app.retrieveNext();
+            }
+            return false;
+        },
+        
+        syncDirectory : function(collection) {
+            editor.directory.reload(collection)
+        },
+        
+        syncManager : function(collection) {
+            if($("#open-dialog").is(":visible")){
+                dbBrowser.resources.collection = collection
+                dbBrowser.resources.reload()
+            }
+        },
+        
+        manage: function() {
+            app.requireLogin(function() {
                 dbBrowser.reload(["reload", "create", "upload", "properties", "open", "cut", "copy", "paste"], "manage");
                 $("#open-dialog").dialog("option", "title", "DB Manager");
                 $("#open-dialog").dialog("option", "buttons", { 
                     "Close": function() { $(this).dialog("close"); }
                 });
                 $("#open-dialog").dialog("open");
-			});
-		},
-		
-		/** Open deployment settings for current app */
-		deploymentSettings: function() {
-			var path = editor.getActiveDocument().getPath();
-			var collection = /^(.*)\/[^\/]+$/.exec(path);
-			if (!collection)
-				return;
-			app.requireLogin(function() {
-                $.log("Editing deployment settings for collection: %s", collection[1]);
-    		    deploymentEditor.open(collection[1]);
-			});
-		},
-		
-		newDeployment: function() {
-			app.requireLogin(function() {
-    			deploymentEditor.open();
-			});
-		},
-		
-		deploy: function() {
-            app.requireLogin(function() {
-    			var path = editor.getActiveDocument().getPath();
-    			var collection = /^(.*)\/[^\/]+$/.exec(path);
-    			if (!collection) {
-    				util.error("The file open in the editor does not belong to an application package!");
-    				return false;
-    			}
-    			$.log("Deploying application from collection: %s", collection[1]);
-    			deploymentEditor.deploy(collection[1]);
             });
-			return false;
-		},
-		
-		synchronize: function() {
+        },
+        
+        /** Open deployment settings for current app */
+        deploymentSettings: function() {
+            var path = editor.getActiveDocument().getPath();
+            var collection = /^(.*)\/[^\/]+$/.exec(path);
+            if (!collection)
+                return;
+            app.requireLogin(function() {
+                $.log("Editing deployment settings for collection: %s", collection[1]);
+                deploymentEditor.open(collection[1]);
+            });
+        },
+        
+        newDeployment: function() {
+            app.requireLogin(function() {
+                deploymentEditor.open();
+            });
+        },
+        
+        deploy: function() {
+            app.requireLogin(function() {
+                var path = editor.getActiveDocument().getPath();
+                var collection = /^(.*)\/[^\/]+$/.exec(path);
+                if (!collection) {
+                    util.error("The file open in the editor does not belong to an application package!");
+                    return false;
+                }
+                $.log("Deploying application from collection: %s", collection[1]);
+                deploymentEditor.deploy(collection[1]);
+            });
+            return false;
+        },
+        
+        synchronize: function() {
             app.requireLogin(function () {
                 var path = editor.getActiveDocument().getPath();
-        		var collection = /^(.*)\/[^\/]+$/.exec(path);
-    			if (!collection) {
+                var collection = /^(.*)\/[^\/]+$/.exec(path);
+                if (!collection) {
                     util.error("The file open in the editor does not belong to an application package!");
-    				return;
-    			}
-    			deploymentEditor.synchronize(collection[1]);
+                    return;
+                }
+                deploymentEditor.synchronize(collection[1]);
             });
-		},
-		
+        },
+        
         gitCheckout: function() {
             app.requireLogin(function () {
                 var path = editor.getActiveDocument().getPath();
-        		var collection = /^(.*)\/[^\/]+$/.exec(path);
-    			if (!collection) {
+                var collection = /^(.*)\/[^\/]+$/.exec(path);
+                if (!collection) {
                     util.error("The file open in the editor does not belong to an application package!");
-    				return;
-    			}
-    			deploymentEditor.gitCheckout(collection[1]);
+                    return;
+                }
+                deploymentEditor.gitCheckout(collection[1]);
             });
-		},
+        },
         gitCommit: function() {
             app.requireLogin(function () {
                 var path = editor.getActiveDocument().getPath();
-        		var collection = /^(.*)\/[^\/]+$/.exec(path);
-    			if (!collection) {
+                var collection = /^(.*)\/[^\/]+$/.exec(path);
+                if (!collection) {
                     util.error("The file open in the editor does not belong to an application package!");
-    				return;
-    			}
-    			deploymentEditor.gitCommit(collection[1]);
+                    return;
+                }
+                deploymentEditor.gitCommit(collection[1]);
             });
-		},
+        },
         
         downloadApp: function () {
             app.requireLogin(function() {
                 var path = editor.getActiveDocument().getPath();
-            	var collection = /^(.*)\/[^\/]+$/.exec(path);
+                var collection = /^(.*)\/[^\/]+$/.exec(path);
                 $.log("downloading %s", collection);
-    			if (!collection) {
+                if (!collection) {
                     util.error("The file open in the editor does not belong to an application package!");
-    				return;
-    			}
-    			deploymentEditor.download(collection[1]);
+                    return;
+                }
+                deploymentEditor.download(collection[1]);
             });
         },
         
-		openApp: function (firstLoad) {
-			var path = editor.getActiveDocument().getPath();
-			var collection = /^(.*)\/[^\/]+$/.exec(path);
-			if (!collection) {
+        openApp: function (firstLoad) {
+            var path = editor.getActiveDocument().getPath();
+            var collection = /^(.*)\/[^\/]+$/.exec(path);
+            if (!collection) {
                 util.error("The file open in the editor does not belong to an application package!");
-				return;
-			}
-			deploymentEditor.runApp(collection[1], firstLoad);
-		},
+                return;
+            }
+            deploymentEditor.runApp(collection[1], firstLoad);
+        },
         
         runAppOrQuery: function() {
             var doc = editor.getActiveDocument();
@@ -765,11 +768,11 @@ eXide.app = (function(util) {
                 app.requireLogin(function () {
                     eXide.util.Dialog.input("Save document?", "The current document has not been saved. Save now?", function() {
                             editor.saveDocument(null, function () {
-                				util.message(editor.getActiveDocument().getName() + " stored.");
+                                util.message(editor.getActiveDocument().getName() + " stored.");
                                 callback();
-                			}, function (msg) {
-                				util.Dialog.warning("Failed to Save Document", msg);
-                			});
+                            }, function (msg) {
+                                util.Dialog.warning("Failed to Save Document", msg);
+                            });
                     });
                 });
             } else {
@@ -777,43 +780,43 @@ eXide.app = (function(util) {
             }
         },
         
-		restoreState: function(callback) {
-			if (!util.supportsHtml5Storage)
-				return false;
-			var sameVersion = preferences.read();
-			if (!sameVersion) {
-			    util.Dialog.message("Version Note", "It seems another version of eXide has been " +
-			        "used from this browser before. If you experience any display issues, please clear your browser's cache " +
+        restoreState: function(callback) {
+            if (!util.supportsHtml5Storage)
+                return false;
+            var sameVersion = preferences.read();
+            if (!sameVersion) {
+                util.Dialog.message("Version Note", "It seems another version of eXide has been " +
+                    "used from this browser before. If you experience any display issues, please clear your browser's cache " +
                     "(holding shift while clicking on the reload icon should usually be sufficient).");
-			}
-			layout.restoreState(sameVersion);
-			
+            }
+            layout.restoreState(sameVersion);
+            
             var restoring = {};
             
-			var docCount = localStorage["eXide.documents"];
-			if (!docCount)
-				docCount = 0;
+            var docCount = localStorage["eXide.documents"];
+            if (!docCount)
+                docCount = 0;
             // we need to restore documents one after the other
             var docsToLoad = [];
-			for (var i = 0; i < docCount; i++) {
-				var doc = {
-						path: localStorage["eXide." + i + ".path"],
-						name: localStorage["eXide." + i + ".name"],
-						writable: (localStorage["eXide." + i + ".writable"] == "true"),
-						line: parseInt(localStorage["eXide." + i + ".last-line"])
-				};
+            for (var i = 0; i < docCount; i++) {
+                var doc = {
+                        path: localStorage["eXide." + i + ".path"],
+                        name: localStorage["eXide." + i + ".name"],
+                        writable: (localStorage["eXide." + i + ".writable"] == "true"),
+                        line: parseInt(localStorage["eXide." + i + ".last-line"])
+                };
                 if (!doc.name) {
                     continue;
                 }
-				$.log("Restoring doc %s, going to line = %i", doc.path, doc.line);
-				var data = localStorage["eXide." + i + ".data"];
-				if (data) {
-					editor.newDocumentWithText(data, localStorage["eXide." + i + ".mime"], doc);
-				} else {
+                $.log("Restoring doc %s, going to line = %i", doc.path, doc.line);
+                var data = localStorage["eXide." + i + ".data"];
+                if (data) {
+                    editor.newDocumentWithText(data, localStorage["eXide." + i + ".mime"], doc);
+                } else {
                     docsToLoad.push(doc);
-				}
+                }
                 restoring[doc.path] = doc;
-			}
+            }
             this.restoreDocs(docsToLoad, function() {
                 if (!editor.getActiveDocument()) {
                     app.newDocument("", "xquery");
@@ -826,11 +829,11 @@ eXide.app = (function(util) {
                 editor.validator.triggerNow(editor.getActiveDocument());
                 if (callback) callback(restoring);
             });
-			deploymentEditor.restoreState();
+            deploymentEditor.restoreState();
             
-			return restoring;
-		},
-		
+            return restoring;
+        },
+        
         restoreDocs: function(docs, callback) {
             if (docs.length == 0) {
                 callback();
@@ -846,21 +849,21 @@ eXide.app = (function(util) {
             });
         },
         
-		saveState: function() {
-			if (!util.supportsHtml5Storage)
-				return;
-			localStorage.clear();
-			preferences.save();
-			layout.saveState();
-			
+        saveState: function() {
+            if (!util.supportsHtml5Storage)
+                return;
+            localStorage.clear();
+            preferences.save();
+            layout.saveState();
+            
             localStorage["eXide.layout.resultPanel"] = resultPanel;
             if (editor.getActiveDocument()) {
                 localStorage["eXide.activeTab"] = editor.getActiveDocument().path;
             }
-			editor.saveState();
-			deploymentEditor.saveState();
-		},
-		
+            editor.saveState();
+            deploymentEditor.saveState();
+        },
+        
         getLogin: function(callback) {
             $.ajax({
                 url: "v1/resources/login",
@@ -891,13 +894,13 @@ eXide.app = (function(util) {
             });
         },
         
-		$checkLogin: function () {
-			if (app.login)
-				return true;
-			util.error("Warning: you are not logged in.");
-			return false;
-		},
-		
+        $checkLogin: function () {
+            if (app.login)
+                return true;
+            util.error("Warning: you are not logged in.");
+            return false;
+        },
+        
         requireLogin: function(callback) {
             if (!app.login) {
                 $("#login-dialog").dialog("option", "close", function () {
@@ -959,13 +962,13 @@ eXide.app = (function(util) {
         },
        
         showResultsPanel: function() {
-			layout.show(resultPanel, true);
-			app.resize(true);
+            layout.show(resultPanel, true);
+            app.resize(true);
         },
         
         toggleResultsPanel: function() {
             layout.toggle(resultPanel);
-			app.resize(true);
+            app.resize(true);
         },
         
         prepareResultsPanel: function(target, switchPanels) {
@@ -1008,10 +1011,10 @@ eXide.app = (function(util) {
                        },
                 showResultsPanel = function() {
                     editor.updateStatus("");
-				    editor.clearErrors();
-				    app.showResultsPanel();
-				    startOffset = 1;
-				    currentOffset = 1;
+                    editor.clearErrors();
+                    app.showResultsPanel();
+                    startOffset = 1;
+                    currentOffset = 1;
                 },       
                 gitShow = function (data, status, xhr) {
                                 showResultsPanel();
@@ -1074,13 +1077,13 @@ eXide.app = (function(util) {
             projects.findProject(doc.getBasePath(), function(app) {
                 eXide.find.Files.open(doc, app, function(searchParams) {
                     editor.updateStatus("");
-				    editor.clearErrors();
-				    startOffset = 1;
-				    currentOffset = 1;
-				    
+                    editor.clearErrors();
+                    startOffset = 1;
+                    currentOffset = 1;
+                    
                     var iframe = document.getElementById("results-iframe");
                     $(iframe).show();
-				    eXide.app.showResultsPanel();
+                    eXide.app.showResultsPanel();
                     
                     iframe.contentWindow.document.open('text/html', 'replace');
                     iframe.contentWindow.document.write("<html><body><p>Searching ...</p></body></html>");
@@ -1125,7 +1128,7 @@ eXide.app = (function(util) {
             });
         },
         
-		initGUI: function(menu) {
+        initGUI: function(menu) {
             if (util.supportsHtml5Storage && localStorage.getItem("eXide.firstTime")) {
                 resultPanel = localStorage["eXide.layout.resultPanel"] || "south";
             }
@@ -1137,25 +1140,25 @@ eXide.app = (function(util) {
             }
             
             app.prepareResultsPanel(resultPanel);
-			$("#open-dialog").dialog({
+            $("#open-dialog").dialog({
                 appendTo: "#layout-container",
-				title: "Open file",
-				modal: false,
-		        autoOpen: false,
-		        height: 480,
-		        width: 600,
-				open: function() { dbBrowser.init(); },
-				resize: function() { dbBrowser.resize(); }
-			});
-			$("#login-dialog").dialog({
+                title: "Open file",
+                modal: false,
+                autoOpen: false,
+                height: 480,
+                width: 600,
+                open: function() { dbBrowser.init(); },
+                resize: function() { dbBrowser.resize(); }
+            });
+            $("#login-dialog").dialog({
                 appendTo: "#layout-container",
-				title: "Login",
-				modal: true,
-				autoOpen: false,
-				buttons: [
-					{
-					    text: "Login",
-					    click: function() {
+                title: "Login",
+                modal: true,
+                autoOpen: false,
+                buttons: [
+                    {
+                        text: "Login",
+                        click: function() {
                             var user = $("#login-form input[name=\"user\"]").val();
                             var password = $("#login-form input[name=\"password\"]").val();
                             var params = {
@@ -1164,64 +1167,64 @@ eXide.app = (function(util) {
                             if ($("#login-form input[name=\"duration\"]").is(":checked")) {
                                 params.duration = "P14D";
                             }
-    						$.ajax({
-    							url: "v1/resources/login",
-    							data: params,
+                            $.ajax({
+                                url: "v1/resources/login",
+                                data: params,
                                 dataType: "json",
-    							success: function (data) {
-    							    if (!data.user) {
-    							        $("#login-error").text("Login failed.");
-    								    $("#login-dialog input:first").focus();
-    							    } else {
-        								app.login = data;
-        								$.log("Logged in as %o. Is dba: %s", data, app.login.isAdmin);
-        								$("#login-dialog").dialog("close");
-        								$("#user").text("Logged in as " + app.login.user + ". ");
-        								editor.focus();
-    							    }
-    							},
-    							error: function (xhr, status, data) {
-    								$("#login-error").text("Login failed. " + data);
-    								$("#login-dialog input:first").focus();
-    							}
-					        });
-					    },
-					    icons: { primary: "fa fa-sign-in" }
-					},
-					{
-					    text: "Cancel",
-					    icons: { primary: "fa fa-times" },
-					    click: function () { $(this).dialog("close"); editor.focus(); }
-					}
-				],
-				open: function() {
-					// clear form fields
-					$(this).find("input").val("");
-					$(this).find("input:first").focus();
-					$("#login-error").empty();
-					
-					var dialog = $(this);
-					dialog.find("input").keyup(function (e) {
-						if (e.keyCode == 13) {
-				           dialog.parent().find(".ui-dialog-buttonpane button:first").trigger("click");
-				        }
-					});
-				}
-			});
-			$("#keyboard-help").dialog({
+                                success: function (data) {
+                                    if (!data.user) {
+                                        $("#login-error").text("Login failed.");
+                                        $("#login-dialog input:first").focus();
+                                    } else {
+                                        app.login = data;
+                                        $.log("Logged in as %o. Is dba: %s", data, app.login.isAdmin);
+                                        $("#login-dialog").dialog("close");
+                                        $("#user").text("Logged in as " + app.login.user + ". ");
+                                        editor.focus();
+                                    }
+                                },
+                                error: function (xhr, status, data) {
+                                    $("#login-error").text("Login failed. " + data);
+                                    $("#login-dialog input:first").focus();
+                                }
+                            });
+                        },
+                        icons: { primary: "fa fa-sign-in" }
+                    },
+                    {
+                        text: "Cancel",
+                        icons: { primary: "fa fa-times" },
+                        click: function () { $(this).dialog("close"); editor.focus(); }
+                    }
+                ],
+                open: function() {
+                    // clear form fields
+                    $(this).find("input").val("");
+                    $(this).find("input:first").focus();
+                    $("#login-error").empty();
+                    
+                    var dialog = $(this);
+                    dialog.find("input").keyup(function (e) {
+                        if (e.keyCode == 13) {
+                           dialog.parent().find(".ui-dialog-buttonpane button:first").trigger("click");
+                        }
+                    });
+                }
+            });
+            $("#keyboard-help").dialog({
                 appendTo: "#layout-container",
-				title: "Keyboard Shortcuts",
-				modal: false,
-				autoOpen: false,
-				height: 400,
+                title: "Keyboard Shortcuts",
+                modal: false,
+                autoOpen: false,
+                height: 400,
                 width: 350,
-				buttons: {
-					"Close": function () { $(this).dialog("close"); }
-				},
-				open: function () {
-					eXide.edit.commands.help($("#keyboard-help"), editor);
-				}
-			});
+                buttons: {
+                    "Close": function () { $(this).dialog("close"); }
+                },
+                open: function () {
+                    eXide.edit.commands.help($("#keyboard-help"), editor);
+                }
+            });
             $("#about-dialog").dialog({
                 appendTo: "#layout-container",
                 title: "About",
@@ -1230,8 +1233,8 @@ eXide.app = (function(util) {
                 height: 300,
                 width: 450,
                 buttons: {
-    				"Close": function () { $(this).dialog("close"); }
-				}
+                    "Close": function () { $(this).dialog("close"); }
+                }
             });
             $("#version-warning").dialog({
                 appendTo: "#layout-container",
@@ -1240,30 +1243,30 @@ eXide.app = (function(util) {
                 height: 300,
                 width: 450,
                 buttons: {
-    				"Close": function () { $(this).dialog("close"); }
-				}
+                    "Close": function () { $(this).dialog("close"); }
+                }
             });
             $("#dialog-templates").dialog({
                 appendTo: "#layout-container",
-    			title: "New document",
-				modal: false,
-		        autoOpen: false,
-		        height: 280,
-		        width: 550,
+                title: "New document",
+                modal: false,
+                autoOpen: false,
+                height: 280,
+                width: 550,
                 dataType: "json",
                 open: function() {
                     $.ajax({
-                	    url: "v1/resources/get-template",
-            			type: "POST",
-            			success: function(data) {
-                		    templates = data;
+                        url: "v1/resources/get-template",
+                        type: "POST",
+                        success: function(data) {
+                            templates = data;
                             $("#dialog-templates .templates").hide();
                             $("#dialog-templates .type-select").val("");
-            			}
+                        }
                     });
                 },
                 buttons: {
-				    "Cancel": function () { $(this).dialog("close"); editor.focus(); },
+                    "Cancel": function () { $(this).dialog("close"); editor.focus(); },
                     "Create": function() {
                         var mode = $(this).find(".type-select").val();
                         var template = $(this).find(".templates select").val();
@@ -1273,7 +1276,7 @@ eXide.app = (function(util) {
                         editor.focus();
                     }
                 }
-			});
+            });
             $("#dialog-templates .type-select").change(function() {
                 var templ = $("#dialog-templates .templates");
                 var templSel = $("select", templ);
@@ -1296,38 +1299,38 @@ eXide.app = (function(util) {
             
             $(".toolbar-buttons").buttonset();
             
-			// initialize buttons and menu events
+            // initialize buttons and menu events
             var button = $("#open").button("option", "icons", { primary: "fa fa-folder-open-o" });
-			button.click(app.openDocument);
+            button.click(app.openDocument);
             menu.click("#menu-file-open", app.openDocument);
-			
+            
             button = $("#close").button("option", "icons", { primary: "fa fa-times" });
-			button.click(app.closeDocument);
-			menu.click("#menu-file-close", app.closeDocument);
-			
-			menu.click("#menu-file-close-all", app.closeAll);
-			
+            button.click(app.closeDocument);
+            menu.click("#menu-file-close", app.closeDocument);
+            
+            menu.click("#menu-file-close-all", app.closeAll);
+            
             button = $("#new").button("option", "icons", { primary: "fa fa-file-o" });
-			button.click(function() {
+            button.click(function() {
                 app.newDocumentFromTemplate();
-			});
+            });
             
             button = $("#new-xquery").button("option", "icons", { primary: "fa fa-file-code-o" });
-			button.click(function() {
+            button.click(function() {
                 app.newDocument(null, "xquery");
-			});
-			menu.click("#menu-file-new", app.newDocumentFromTemplate);
-    		menu.click("#menu-file-new-xquery", function() {
+            });
+            menu.click("#menu-file-new", app.newDocumentFromTemplate);
+            menu.click("#menu-file-new-xquery", function() {
                 app.newDocument(null, "xquery");
-    		});
+            });
 
             button = $("#eval").button("option", "icons", { primary: "fa fa-cogs" });
             button.button("option", "disabled", true);
-			button.click(function(ev) { app.runQuery() });
+            button.click(function(ev) { app.runQuery() });
 
             button = $("#run").button("option", "icons", { primary: "fa fa-play" });
-			button.click(function(ev) { app.runAppOrQuery() });
-			
+            button.click(function(ev) { app.runAppOrQuery() });
+            
             button = $("#debug").button("option", "icons", { primary: "fa fa-fast-forward" });
             button.click(app.startDebug);
 
@@ -1343,33 +1346,33 @@ eXide.app = (function(util) {
 
             button = $("#validate").button("option", "icons", { primary: "fa fa-check" });
 
-			button.click(app.checkQuery);
+            button.click(app.checkQuery);
             
             button = $("#save").button("option", "icons", { primary: "fa fa-save" });
-			button.click(app.saveDocument);
-			menu.click("#menu-file-save", app.saveDocument);
+            button.click(app.saveDocument);
+            menu.click("#menu-file-save", app.saveDocument);
             menu.click("#menu-file-save-as", app.saveDocumentAs);
-			
+            
             menu.click("#menu-file-reload", app.reloadDocument);
             
-			menu.click("#menu-file-download", app.download);
-			menu.click("#menu-file-manager", app.manage);
-			// menu-only events
-			menu.click("#menu-deploy-new", app.newDeployment);
-			menu.click("#menu-deploy-edit", app.deploymentSettings);
-			menu.click("#menu-deploy-live", app.toggleLiveReload);
-			menu.click("#menu-deploy-sync", app.synchronize);
+            menu.click("#menu-file-download", app.download);
+            menu.click("#menu-file-manager", app.manage);
+            // menu-only events
+            menu.click("#menu-deploy-new", app.newDeployment);
+            menu.click("#menu-deploy-edit", app.deploymentSettings);
+            menu.click("#menu-deploy-live", app.toggleLiveReload);
+            menu.click("#menu-deploy-sync", app.synchronize);
             menu.click("#menu-deploy-download", app.downloadApp);
             
             menu.click("#menu-git-checkout", app.gitCheckout);
             menu.click("#menu-git-commit", app.gitCommit);
             
-			menu.click("#menu-edit-undo", function () {
-				editor.editor.undo();
-			});
-			menu.click("#menu-edit-redo", function () {
-				editor.editor.redo();
-			});
+            menu.click("#menu-edit-undo", function () {
+                editor.editor.undo();
+            });
+            menu.click("#menu-edit-redo", function () {
+                editor.editor.redo();
+            });
             menu.click("#menu-edit-find", function() {
                 var config = require("ace/config");
                 config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor.editor)});
@@ -1384,15 +1387,15 @@ eXide.app = (function(util) {
             menu.click("#menu-edit-toggle-comment", function () {
                 editor.editor.toggleCommentLines();
             });
-			menu.click("#menu-edit-preferences", function() {
-                preferences.show(); 		
-			});
+            menu.click("#menu-edit-preferences", function() {
+                preferences.show();         
+            });
             menu.click("#menu-navigate-definition", function () {
                 editor.exec("gotoDefinition");
             });
             menu.click("#menu-navigate-modules", function () {
                 var doc = editor.getActiveDocument();
-	    		eXide.find.Modules.select(doc.syntax);
+                eXide.find.Modules.select(doc.syntax);
             });
             menu.click("#menu-navigate-info", function() {
                 editor.exec("showFunctionDoc");
@@ -1421,30 +1424,30 @@ eXide.app = (function(util) {
                 }
                 layout.reset();
             });
-			menu.click("#menu-deploy-run", app.runAppOrQuery);
-			
+            menu.click("#menu-deploy-run", app.runAppOrQuery);
+            
             menu.click("#menu-help-keyboard", function (ev) {
-				$("#keyboard-help").dialog("open");
-			});
+                $("#keyboard-help").dialog("open");
+            });
             menu.click("#menu-help-about", function (ev) {
-				$("#about-dialog").dialog("open");
-			});
+                $("#about-dialog").dialog("open");
+            });
             // menu.click("#menu-help-documentation", function(ev) {
             //     util.Help.show();
             // });
             menu.click("#menu-help-documentation", function(ev) {
                 window.open("docs/doc.html");
             });
-			// syntax drop down
-			$("#syntax").change(function () {
-				editor.setMode($(this).val());
-			});
-			// register listener to update syntax drop down
-			editor.addEventListener("activate", null, function (doc) {
+            // syntax drop down
+            $("#syntax").change(function () {
+                editor.setMode($(this).val());
+            });
+            // register listener to update syntax drop down
+            editor.addEventListener("activate", null, function (doc) {
                 app.updateStatus(doc);
                 projects.findProject(doc.getBasePath(), function(app) {
                     if (app) {
-                        $("#toolbar-current-app").text(app.abbrev);
+                        //$("#toolbar-current-app").text(app.abbrev);
                         $("#menu-deploy-active").text(app.abbrev);
                         $("#menu-deploy-live span").attr("class", app.liveReload ? "fa fa-check-square-o" : "fa fa-square-o");
                         // update show/hide git stuff
@@ -1459,26 +1462,26 @@ eXide.app = (function(util) {
                         }
                         
                     } else {
-                        $("#toolbar-current-app").text("unknown");
+                        //$("#toolbar-current-app").text("unknown");
                         $("#menu-deploy-active").text("unknown");
                         $(".current-branch").hide();
                         $("#menu-git").hide();
                     }
                 });
-			});
-			
+            });
             
-			$("#user").click(function (ev) {
-				ev.preventDefault();
-				if (app.login) {
-					// logout
-					$.get("login?logout=logout");
-					$("#user").text("Login");
-					app.login = null;
-				} else {
-					$("#login-dialog").dialog("open");
-				}
-			});
+            
+            $("#user").click(function (ev) {
+                ev.preventDefault();
+                if (app.login) {
+                    // logout
+                    $.get("login?logout=logout");
+                    $("#user").text("Login");
+                    app.login = null;
+                } else {
+                    $("#login-dialog").dialog("open");
+                }
+            });
             if (!util.supportsFullScreen()) {
                 $("#toggle-fullscreen").hide();
             }
@@ -1487,8 +1490,8 @@ eXide.app = (function(util) {
                 util.requestFullScreen(document.getElementById("fullscreen"));
             });
             $(".results-container .layout-switcher").click(app.switchResultsPanel);
-			$('.results-container .next').click(app.browseNext);
-			$('.results-container .previous').click(app.browsePrevious);
+            $('.results-container .next').click(app.browseNext);
+            $('.results-container .previous').click(app.browsePrevious);
             $("#serialization-mode").change(function(ev) {
                 if (lastQuery) {
                     app.runQuery(lastQuery);
@@ -1518,25 +1521,45 @@ eXide.app = (function(util) {
             // first time startup dialog
             $("#dialog-startup").dialog({
                 appendTo: "#layout-container",
-        		modal: false,
+                modal: false,
                 title: "Quick Start",
-    			autoOpen: false,
+                autoOpen: false,
                 width: 400,
                 height: 300,
-    			buttons: {
+                buttons: {
                     "OK" : function() { $(this).dialog("close"); }
-    			}
-    		});
+                }
+            });
             if (!util.supportsHtml5Storage)
-    		    return;
+                return;
             // if local storage contains eXide properties, the app has already
             // been started before and we do not show the welcome dialog
             var showHints = localStorage.getItem("eXide.firstTime");
             if (!showHints || showHints == 1) {
                 $("#dialog-startup").dialog("open");
             }
-		}
-	};
-	
-	return app;
+            //PAKA: populate the database combo
+            $.ajax({
+                url: "v1/resources/collections?rs:root=/db&rs:view=r",
+                dataType: "json",
+                success: function(data) {
+                    if (data) {
+                        $.each(data.items,function(i,obj)
+                            {
+                                console.log(obj.name);
+                                var div_data="<option value="+obj.name+">"+obj.name+"</option>";
+                                console.log(div_data);
+                                $(div_data).appendTo('#currentDB'); 
+                            });  
+                            
+                    }
+                },
+                error: function (xhr, textStatus) {
+
+                }
+            })
+        }
+    };
+    
+    return app;
 }(eXide.util));
